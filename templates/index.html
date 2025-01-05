@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel to ICS Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .file-input {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Excel to ICS Converter</h1>
+        <p>Upload your Excel file to generate an ICS calendar file.</p>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <div class="file-input">
+                <input type="file" name="file" accept=".xlsx" required>
+            </div>
+            <button type="submit">Convert</button>
+        </form>
+    </div>
+</body>
+</html>
