@@ -29,7 +29,7 @@ Now, you can simply upload your class schedule, and the application will generat
 5. You can then import the generated `.ics` file into your calendar application.
 
 <p align="center">
-  <img src="/images/ScreenShot1.jpeg.png" alt="Schedule2Calendar" width="500"/>
+  <img src="/images/ScreenShot1.jpeg" alt="Schedule2Calendar" width="500"/>
 </p>  
 
 ### Example of Class Event
