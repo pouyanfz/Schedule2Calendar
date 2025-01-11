@@ -1,10 +1,14 @@
 # UBC Class Schedule to Calendar
 
+Check out the project live here: [**UBC Class Schedule to Calendar**](https://schedule2calendar.pythonanywhere.com)
+
+
 This project allows UBC students to seamlessly convert their class schedules into calendar events with full details, including the class location and the option to set notifications to remind them when to leave for class. This tool is especially helpful for those who find it difficult to navigate the campus, and it automates the process of tracking your classes while also including useful location data for easy navigation.
 
 <p align="center">
   <img src="/images/Screenshot2.png" alt="Schedule2Calendar" width="800"/>
-</p>  
+</p>
+
 
 
 ## Motivation
@@ -27,6 +31,8 @@ Now, you can simply upload your class schedule, and the application will generat
 3. The application reads the file, extracts the necessary information (course names, times, locations), and generates events in a calendar.
 4. The calendar events are saved as a `.ics` file.
 5. You can then import the generated `.ics` file into your calendar application.
+
+
 
 <p align="center">
   <img src="/images/ScreenShot1.jpeg" alt="Schedule2Calendar" width="500"/>
