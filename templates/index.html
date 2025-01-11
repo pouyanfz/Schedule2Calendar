@@ -27,6 +27,11 @@
             color: #003c73;
         }
 
+        .container img {
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
         h1 {
             color: #003c73;
             font-size: 2em;
@@ -94,6 +99,7 @@
 </head>
 <body>
     <div class="container">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="UBC Logo">
         <h1>UBC Workday Schedule in Your Calendar</h1>
         <p>Upload your Excel file to generate an ICS calendar file.</p>
         <form action="/upload" method="post" enctype="multipart/form-data">
