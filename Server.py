@@ -4,8 +4,32 @@ from icalendar import Calendar, Event
 from datetime import datetime, timedelta
 import os
 import re
+import csv
 
 app = Flask(__name__)
+
+# Load address map from CSV
+def load_addresses(csv_path):
+    address_map = {}
+    with open(csv_path, 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            building_name, code, address = row
+            address_map[code] = address
+    return address_map
+
+ADDRESS_MAP = load_addresses('Address.csv')
+
+# Function to parse location and append full address
+def parse_address(location, address_map):
+    parts = location.split('-')
+    if len(parts) >= 2:
+        building_code = parts[0].strip()
+        room_info = parts[-1].strip()
+        if building_code in address_map:
+            return f"{room_info}-{address_map[building_code]} Vancouver BC, Canada"
+    return "Unknown Address"
+
 
 # Function to parse time
 def parse_time(time_str):
@@ -67,11 +91,9 @@ def upload():
         name = f"{row['Course Listing']} - {row['Instructional Format']}"  # Combine course name and format
         meeting_patterns = row['Meeting Patterns']
         instructor = row.get('Instructor', '')
-        address = row.get('Address', '')
         details = row.get('Section', '')
         patterns = re.split(r'\n(?=\d{4})', meeting_patterns)
 
-        
         for pattern in patterns:
             start_date, end_date, days, start_time, end_time, location = parse_meeting_pattern(pattern)
             current_date = start_date
@@ -80,8 +102,9 @@ def upload():
                 if current_date.strftime('%a')[:3] in days_map and days_map[current_date.strftime('%a')[:3]] in [days_map[day] for day in days]:
                     start_datetime = datetime.combine(current_date, start_time)
                     end_datetime = datetime.combine(current_date, end_time)
-                    description = f'Instructor: {instructor}\n\n{location}\n\n{details}'
-                    event = create_event(name, start_datetime, end_datetime, location, address, description)
+                    full_address = parse_address(location, ADDRESS_MAP)
+                    description = f'Instructor: {instructor}\n\n{location}\n{details}'
+                    event = create_event(name, start_datetime, end_datetime, location, full_address, description)
                     cal.add_component(event)
                 
                 current_date += timedelta(days=1)
