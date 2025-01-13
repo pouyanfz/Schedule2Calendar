@@ -13,10 +13,16 @@ def load_addresses(csv_path):
     address_map = {}
     with open(csv_path, 'r') as file:
         reader = csv.reader(file)
+        next(reader)  # Skip header row if you have one
         for row in reader:
             building_name, code, address = row
-            address_map[code] = address
+            # Store both name and address in a dictionary for each code
+            address_map[code] = {
+                "name": building_name,
+                "address": address
+            }
     return address_map
+
 
 ADDRESS_MAP = load_addresses('Address.csv')
 
@@ -26,10 +32,28 @@ def parse_address(location, address_map):
     if len(parts) >= 2:
         building_code = parts[0].strip()
         room_info = parts[-1].strip()
+        
+        # Remove "Room" if it appears at the beginning
+        if room_info.startswith("Room"):
+            room_info = room_info[5:].strip()
+        
         if building_code in address_map:
-            return f"{room_info}-{address_map[building_code]} Vancouver BC, Canada"
+            building_address = address_map[building_code]["address"]
+            # Format full address as requested
+            return f"{room_info}-{building_address}\nVancouver BC V6T 1Z4\nCanada"
     return "Unknown Address"
 
+# Function to get the full building name
+def get_building_full_name(location, address_map):
+    parts = location.split('-')
+    if len(parts) >= 2:
+        building_code = parts[0].strip()
+        room_info = '-'.join(parts[1:]).strip() 
+        
+        if building_code in address_map:
+            building_name = address_map[building_code]["name"]
+            return f"📍{building_name} ({building_code})-{room_info}"
+    return location
 
 # Function to parse time
 def parse_time(time_str):
@@ -103,7 +127,8 @@ def upload():
                     start_datetime = datetime.combine(current_date, start_time)
                     end_datetime = datetime.combine(current_date, end_time)
                     full_address = parse_address(location, ADDRESS_MAP)
-                    description = f'Instructor: {instructor}\n\n{location}\n{details}'
+                    building_full_description = get_building_full_name(location, ADDRESS_MAP)
+                    description = f'Instructor: {instructor}\n\n{building_full_description}\n\n{details}'
                     event = create_event(name, start_datetime, end_datetime, location, full_address, description)
                     cal.add_component(event)
                 
