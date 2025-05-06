@@ -1,6 +1,6 @@
 from flask import Flask, request, send_file, render_template
 import pandas as pd
-from icalendar import Calendar, Event
+from icalendar import Calendar, Event, vRecur
 from datetime import datetime, timedelta
 import os
 import re
@@ -28,6 +28,8 @@ ADDRESS_MAP = load_addresses('Address.csv')
 
 # Function to parse location and append full address
 def parse_address(location, address_map):
+    if location == 'Online':
+        return 'Online - Virtual Class\nCanada'
     parts = location.split('-')
     if len(parts) >= 2:
         building_code = parts[0].strip()
@@ -45,6 +47,8 @@ def parse_address(location, address_map):
 
 # Function to get the full building name
 def get_building_full_name(location, address_map):
+    if location == 'Online':
+        return '💻 Online Class'
     parts = location.split('-')
     if len(parts) >= 2:
         building_code = parts[0].strip()
@@ -57,15 +61,31 @@ def get_building_full_name(location, address_map):
 
 # Function to parse time
 def parse_time(time_str):
-    time_str = time_str.replace('.', '')  # Remove periods from time strings
+    time_str = time_str.lower().replace('.', '').replace('|', '').strip()
     return datetime.strptime(time_str, '%I:%M %p').time()
 
 # Function to parse meeting patterns
 def parse_meeting_pattern(pattern):
-    dates, days, times, location = pattern.split(' | ')
-    start_date, end_date = map(lambda x: datetime.strptime(x, '%Y-%m-%d').date(), dates.split(' - '))
+    parts = pattern.strip().split(' | ')
+    if len(parts) == 4:
+        dates, days, times, location = parts
+        if not location.strip():
+            location = 'Online'
+    elif len(parts) == 3:
+        dates, days, times = parts
+        location = 'Online'
+    else:
+        raise ValueError(f"Invalid pattern format: {pattern}")
+    
+    # Clean extra junk from time field (e.g. trailing "|")
+    times = times.strip().rstrip('|').strip()
     start_time, end_time = map(parse_time, times.split(' - '))
+    
+    start_date, end_date = map(lambda x: datetime.strptime(x.strip(), '%Y-%m-%d').date(), dates.split(' - '))
     return start_date, end_date, days.split(), start_time, end_time, location
+
+
+
 
 # Function to create an event
 def create_event(name, start_datetime, end_datetime, location, address='', description=''):
@@ -120,19 +140,26 @@ def upload():
 
         for pattern in patterns:
             start_date, end_date, days, start_time, end_time, location = parse_meeting_pattern(pattern)
-            current_date = start_date
-            
-            while current_date <= end_date:
-                if current_date.strftime('%a')[:3] in days_map and days_map[current_date.strftime('%a')[:3]] in [days_map[day] for day in days]:
-                    start_datetime = datetime.combine(current_date, start_time)
-                    end_datetime = datetime.combine(current_date, end_time)
-                    full_address = parse_address(location, ADDRESS_MAP)
-                    building_full_description = get_building_full_name(location, ADDRESS_MAP)
-                    description = f'Instructor: {instructor}\n\n{building_full_description}\n\n{details}'
-                    event = create_event(name, start_datetime, end_datetime, location, full_address, description)
-                    cal.add_component(event)
-                
-                current_date += timedelta(days=1)
+            weekday_map = {
+                'Mon': 'MO', 'Tue': 'TU', 'Wed': 'WE',
+                'Thu': 'TH', 'Fri': 'FR', 'Sat': 'SA', 'Sun': 'SU'
+            }
+            byday = [weekday_map[day] for day in days if day in weekday_map]
+
+            start_datetime = datetime.combine(start_date, start_time)
+            end_datetime = datetime.combine(start_date, end_time)
+            full_address = parse_address(location, ADDRESS_MAP)
+            building_full_description = get_building_full_name(location, ADDRESS_MAP)
+            description = f'Instructor: {instructor}\n\n{building_full_description}\n\n{details}'
+
+            event = create_event(name, start_datetime, end_datetime, location, full_address, description)
+            event.add('rrule', vRecur({
+                'freq': 'weekly',
+                'byday': byday,
+                'until': datetime.combine(end_date, end_time)
+            }))
+            cal.add_component(event)
+
     
     ics_file_path = os.path.join('uploads', f'{os.path.splitext(file.filename)[0]}.ics')
     with open(ics_file_path, 'wb') as f:
