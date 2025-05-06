@@ -84,9 +84,6 @@ def parse_meeting_pattern(pattern):
     start_date, end_date = map(lambda x: datetime.strptime(x.strip(), '%Y-%m-%d').date(), dates.split(' - '))
     return start_date, end_date, days.split(), start_time, end_time, location
 
-
-
-
 # Function to create an event
 def create_event(name, start_datetime, end_datetime, location, address='', description=''):
     event = Event()
@@ -159,7 +156,6 @@ def upload():
                 'until': datetime.combine(end_date, end_time)
             }))
             cal.add_component(event)
-
     
     ics_file_path = os.path.join('uploads', f'{os.path.splitext(file.filename)[0]}.ics')
     with open(ics_file_path, 'wb') as f:
