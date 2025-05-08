@@ -129,6 +129,8 @@ def upload():
     days_map = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5, 'Sun': 6}
 
     for _, row in df.iterrows():
+        if pd.isna(row.get('Meeting Patterns')) or not str(row['Meeting Patterns']).strip():
+            continue
         name = f"{row['Course Listing']} - {row['Instructional Format']}"  # Combine course name and format
         meeting_patterns = row['Meeting Patterns']
         instructor = row.get('Instructor', '')
