@@ -1,10 +1,12 @@
-from flask import Flask, request, send_file, render_template
+from flask import Flask, request, send_file, render_template, url_for
 import pandas as pd
 from icalendar import Calendar, Event, vRecur
 from datetime import datetime, timedelta
 import os
 import re
 import csv
+import json
+
 
 app = Flask(__name__)
 
@@ -14,11 +16,11 @@ def load_addresses(csv_path):
     address_map = {}
     with open(csv_path, "r") as file:
         reader = csv.reader(file)
-        next(reader)  # Skip header row if you have one
+        next(reader)  # skip header if present
         for row in reader:
             building_name, code, address = row
-            # Store both name and address in a dictionary for each code
-            address_map[code] = {"name": building_name, "address": address}
+            code = code.strip().upper()
+            address_map[code] = {"name": building_name.strip(), "address": address.strip()}
     return address_map
 
 
@@ -27,37 +29,70 @@ ADDRESS_MAP = load_addresses("Address.csv")
 
 # Function to parse location and append full address
 def parse_address(location, address_map):
-    if location == "Online":
+    if not location or not str(location).strip():
+        return "Unknown Address"
+    loc = str(location).strip()
+
+    if loc.lower().startswith("online"):
         return "Online - Virtual Class\nCanada"
-    parts = location.split("-")
-    if len(parts) >= 2:
-        building_code = parts[0].strip()
-        room_info = parts[-1].strip()
 
-        # Remove "Room" if it appears at the beginning
-        if room_info.startswith("Room"):
-            room_info = room_info[5:].strip()
+    # Try new format: "... (HENN) | ... | Room: 200"
+    m_code = re.search(r"\(([A-Z0-9]+)\)", loc)
+    m_room = re.search(r"Room:\s*([A-Za-z0-9\-]+)", loc)
 
-        if building_code in address_map:
-            building_address = address_map[building_code]["address"]
-            # Format full address as requested
-            return f"{room_info}-{building_address}\nVancouver BC V6T 1Z4\nCanada"
+    code = m_code.group(1).upper() if m_code else None
+    room = m_room.group(1) if m_room else None
+
+    # Fallback to old format: "HENN - Room 200"
+    if not code:
+        parts = loc.split("-")
+        if parts:
+            code = parts[0].strip().upper()
+        if len(parts) >= 2 and not room:
+            room = parts[-1].strip().replace("Room", "").strip()
+
+    if code in address_map:
+        addr = address_map[code]["address"]
+        if room:
+            return f"{room}-{addr}\nVancouver BC\nCanada"
+        return f"{addr}\nVancouver BC \nCanada"
+
     return "Unknown Address"
+
 
 
 # Function to get the full building name
 def get_building_full_name(location, address_map):
-    if location == "Online":
-        return "💻 Online Class"
-    parts = location.split("-")
-    if len(parts) >= 2:
-        building_code = parts[0].strip()
-        room_info = "-".join(parts[1:]).strip()
+    if not location or not str(location).strip():
+        return str(location)
 
-        if building_code in address_map:
-            building_name = address_map[building_code]["name"]
-            return f"📍{building_name} ({building_code})-{room_info}"
-    return location
+    loc = str(location).strip()
+    if loc.lower().startswith("online"):
+        return "💻 Online Class"
+
+    # New format: "... | Hennings Building (HENN) | Floor: 1 | Room: 200"
+    m_code = re.search(r"\(([A-Z0-9]+)\)", loc)
+    code = m_code.group(1).upper() if m_code else None
+    pieces = [p.strip() for p in loc.split("|")]
+    human_name = None
+    if len(pieces) >= 2:
+        # remove trailing "(CODE)" from the building name
+        human_name = re.sub(r"\s*\([A-Z0-9]+\)\s*$", "", pieces[1]).strip()
+
+    m_room = re.search(r"Room:\s*([A-Za-z0-9\-]+)", loc)
+    room = m_room.group(1) if m_room else None
+
+    if code in address_map:
+        name = human_name or address_map[code]["name"]
+        if room:
+            return f"📍{name} ({code}) - Room {room}"
+        return f"📍{name} ({code})"
+
+    # Fallbacks
+    if code and room:
+        return f"📍{code} - Room {room}"
+    return loc
+
 
 
 # Function to parse time
@@ -198,6 +233,46 @@ def upload():
 
     return send_file(ics_file_path, as_attachment=True)
 
+def load_howto_items():
+    img_dir = os.path.join(app.static_folder, "howto")
+    try:
+        files = sorted(
+            f for f in os.listdir(img_dir)
+            if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
+        )
+    except FileNotFoundError:
+        files = []
+
+    # optional metadata file: static/howto/meta.json
+    meta_path = os.path.join(img_dir, "meta.json")
+    meta = {}
+    try:
+        with open(meta_path, "r") as fh:
+            data = json.load(fh)
+            # allow either list of objects or object keyed by filename
+            if isinstance(data, list):
+                meta = {item["file"]: item for item in data if "file" in item}
+            elif isinstance(data, dict):
+                meta = data
+    except Exception:
+        meta = {}
+
+    items = []
+    for f in files:
+        base = os.path.splitext(f)[0]
+        default_caption = base.replace("_", " ").strip()
+        m = meta.get(f, {})
+        items.append({
+            "file": f,
+            "caption": m.get("caption", default_caption),
+            "alt": m.get("alt", default_caption),
+        })
+    return items
+
+@app.get("/how-to")
+def how_to():
+    items = load_howto_items()
+    return render_template("how_to.html", items=items)
 
 if __name__ == "__main__":
     app.run(debug=True)
