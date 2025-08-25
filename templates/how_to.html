@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>How to use</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background:#f5f7fb; color:#102a43; }
+    header { background:#003c73; color:white; padding:16px; }
+    header a { color:white; text-decoration:underline; }
+    .wrap { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+    h1 { margin: 0 0 12px 0; }
+    p.lead { margin: 0 0 24px 0; }
+    .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    }
+    figure {
+        background: white; border-radius: 10px; box-shadow: 0 6px 10px rgba(0,0,0,0.08);
+        margin: 0; padding: 20px;
+    }
+    figure img {
+        width: 100%; height: auto; object-fit: contain; background: #f0f4f8ff;
+    }
+    figcaption { font-size:20px; color:#394e6a; margin-top:8px; background:#0b75efff; padding:8px; border-radius: 5px; color: white; }
+    .back { display:inline-block; margin-top:16px; }
+    
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <a href="{{ url_for('index') }}">← Back</a>
+      <h1>How to use</h1>
+      <p class="lead">Step by step screenshots.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    {% if items %}
+      <div class="grid">
+        {% for item in items %}
+        <figure>
+            <a href="{{ url_for('static', filename='howto/' ~ item.file) }}" target="_blank" rel="noopener">
+            <img src="{{ url_for('static', filename='howto/' ~ item.file) }}" alt="{{ item.alt }}">
+            </a>
+            <figcaption>{{ item.caption }}</figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No screenshots found yet.</p>
+    {% endif %}
+
+    <a class="back" href="{{ url_for('index') }}">Back to upload</a>
+  </main>
+</body>
+</html>

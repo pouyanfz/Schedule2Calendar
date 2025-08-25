@@ -100,6 +100,7 @@
 </head>
 <body>
     <div class="container">
+        
         <img src="{{ url_for('static', filename='images/logo.png') }}" alt="UBC Logo">
         <h1>UBC Workday Schedule in Your Calendar</h1>
         <p>Upload your Excel file to generate an ICS calendar file.</p>
@@ -109,6 +110,7 @@
             </div>
             <button type="submit">Convert</button>
         </form>
+        <p style="text-align: right;"><a href="{{ url_for('how_to') }}">⚠️ How to use this tool</a></p>
     </div>
 </body>
 </html>

@@ -1,0 +1,62 @@
+[
+    {
+        "file": "1.png",
+        "alt": "workday login",
+        "caption": "1.Log in to your workday account"
+    },
+    {
+        "file": "2.png",
+        "alt": "Academics tab in workday",
+        "caption": "2. Open the Academics tab in Workday"
+    },
+    {
+        "file": "3.png",
+        "alt": "registration & courses tab",
+        "caption": "3.Choose the Registration & Courses tab in Workday"
+    },
+    {
+        "file": "4.png",
+        "alt": "Download excel",
+        "caption": "4.Click Refresh and then 'Download to Excel' from Current Classes field"
+    },
+    {
+        "file": "5.png",
+        "alt": "Download",
+        "caption": "5. Click the Download button"
+    },
+    {
+        "file": "6-1.png",
+        "alt": "choose file",
+        "caption": "Click on Choose File button to select the downloaded file"
+    },
+    {
+        "file": "6.png",
+        "alt": "upload file",
+        "caption": "7. Select the excel file and click on Upload button to upload the selected file"
+    },
+    {
+        "file": "7.png",
+        "alt": "Click on Convert",
+        "caption": "Click on Convert button to start the conversion process"
+    },
+    {
+        "file": "8.png",
+        "alt": "The ICS file ",
+        "caption": "9.The ICS file will be generated and downloaded automatically"
+    },
+    {
+        "file": "9.png",
+        "alt": "ICS file",
+        "caption": "10. Double-click the ICS file to open it in your calendar application"
+    },
+    {
+        "file": "a.png",
+        "alt": "Sample screenshot mac",
+        "caption": "Sample screenshot of the calendar application on Mac"
+    },
+    {
+        "file": "b.png",
+        "alt": "Sample screenshot iPhone",
+        "caption": "Sample screenshot of the calendar application on iPhone"
+    }
+]
