@@ -20,7 +20,10 @@ def load_addresses(csv_path):
         for row in reader:
             building_name, code, address = row
             code = code.strip().upper()
-            address_map[code] = {"name": building_name.strip(), "address": address.strip()}
+            address_map[code] = {
+                "name": building_name.strip(),
+                "address": address.strip(),
+            }
     return address_map
 
 
@@ -60,7 +63,6 @@ def parse_address(location, address_map):
     return "Unknown Address"
 
 
-
 # Function to get the full building name
 def get_building_full_name(location, address_map):
     if not location or not str(location).strip():
@@ -92,7 +94,6 @@ def get_building_full_name(location, address_map):
     if code and room:
         return f"📍{code} - Room {room}"
     return loc
-
 
 
 # Function to parse time
@@ -205,7 +206,9 @@ def upload():
             byday = [weekday_map[day] for day in days if day in weekday_map]
 
             start_datetime = datetime.combine(start_date, start_time)
-            end_datetime = datetime.combine(start_date, end_time)
+            end_datetime = datetime.combine(start_date, end_time) - timedelta(
+                minutes=10
+            )
             full_address = parse_address(location, ADDRESS_MAP)
             building_full_description = get_building_full_name(location, ADDRESS_MAP)
             description = (
@@ -221,7 +224,8 @@ def upload():
                     {
                         "freq": "weekly",
                         "byday": byday,
-                        "until": datetime.combine(end_date, end_time),
+                        "until": datetime.combine(end_date, end_time)
+                        - timedelta(minutes=10),
                     }
                 ),
             )
@@ -233,11 +237,13 @@ def upload():
 
     return send_file(ics_file_path, as_attachment=True)
 
+
 def load_howto_items():
     img_dir = os.path.join(app.static_folder, "howto")
     try:
         files = sorted(
-            f for f in os.listdir(img_dir)
+            f
+            for f in os.listdir(img_dir)
             if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
         )
     except FileNotFoundError:
@@ -262,17 +268,21 @@ def load_howto_items():
         base = os.path.splitext(f)[0]
         default_caption = base.replace("_", " ").strip()
         m = meta.get(f, {})
-        items.append({
-            "file": f,
-            "caption": m.get("caption", default_caption),
-            "alt": m.get("alt", default_caption),
-        })
+        items.append(
+            {
+                "file": f,
+                "caption": m.get("caption", default_caption),
+                "alt": m.get("alt", default_caption),
+            }
+        )
     return items
+
 
 @app.get("/how-to")
 def how_to():
     items = load_howto_items()
     return render_template("how_to.html", items=items)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
