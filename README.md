@@ -52,7 +52,7 @@ If you want to get **time to leave** notifications on iOS you can navigate to **
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/ubc-class-schedule-to-calendar.git
+   git clone https://github.com/pouyanfz/Schedule2Calendar.git
    ```
 
 2. Install the dependencies:
